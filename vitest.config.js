@@ -7,6 +7,14 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{js,ts}'],
     environment: 'jsdom',
     setupFiles: ['./src/test-setup.js'],
-    globals: true
+    globals: true,
+    coverage: {
+      provider: 'c8',
+      reporter: ['text', 'lcov'],
+      lines: 60,
+      functions: 60,
+      branches: 50,
+      statements: 60
+    }
   }
 });
