@@ -1,19 +1,39 @@
 {
   "name": "Primo's Pizza",
-  "phone": "248-476-4260",
-  "address": "33521 W. Seven Mile Rd, Just West of Farmington Rd",
-  "location": "Livonia, Michigan",
-  "established": "Since 1968",
-  "website": "www.primoslivonia.com",
-  "hours": {
-    "Monday-Tuesday": "4pm-10pm",
-    "Wednesday, Thursday, Sunday": "4pm-12 Mid",
-    "Friday-Saturday": "4pm-2am"
+  "address": {
+    "street": "7 Mile & Farmington",
+    "city": "Livonia", 
+    "state": "MI",
+    "zipCode": "48152",
+    "full": "7 Mile & Farmington - Livonia, MI 48152"
   },
-  "awards": [
-    "Awarded Livonia Small Business of the Year 2017",
-    "Voted One of the Top 25 Pizzas in Metro Detroit Area by Detroit Free Press, August 27, 2009"
+  "contact": {
+    "phone": "(248) 476-4260",
+    "email": "info@primospizza.com",
+    "website": "https://primospizza.com"
+  },
+  "hours": {
+    "monday": { "open": "11:00", "close": "22:00", "closed": false },
+    "tuesday": { "open": "11:00", "close": "22:00", "closed": false },
+    "wednesday": { "open": "11:00", "close": "22:00", "closed": false },
+    "thursday": { "open": "11:00", "close": "22:00", "closed": false },
+    "friday": { "open": "11:00", "close": "23:00", "closed": false },
+    "saturday": { "open": "11:00", "close": "23:00", "closed": false },
+    "sunday": { "open": "12:00", "close": "22:00", "closed": false }
+  },
+  "timezone": "America/Detroit",
+  "description": "Primo's Pizza has been serving the Livonia community with authentic, hand-tossed pizzas and comfort food since 1985. Family-owned and operated, we pride ourselves on using the freshest ingredients and time-honored recipes.",
+  "specialties": [
+    "Hand-tossed pizza",
+    "Broasted chicken", 
+    "BBQ ribs",
+    "Fresh pasta",
+    "Submarine sandwiches"
   ],
-  "paymentMethods": ["Visa", "MasterCard", "American Express", "Discover"],
-  "services": ["Delivery", "Pickup", "U-Bake Pizza"]
+  "features": [
+    "Dine-in",
+    "Takeout", 
+    "Family-friendly",
+    "Local favorite"
+  ]
 }

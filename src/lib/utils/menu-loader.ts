@@ -6,7 +6,9 @@ import restaurantInfoData from '../data/restaurant-info.json';
 import toppingsData from '../data/toppings.json';
 import saucesData from '../data/sauces.json';
 import couponsData from '../data/coupons.json';
-import categoriesData from '../data/menu-categories.json';
+
+// Use the complete menu data from the root directory
+import menuCategoriesCompleteData from '../../../menu_categories_complete.json';
 
 export class MenuLoader {
   private static _instance: MenuLoader;
@@ -28,11 +30,11 @@ export class MenuLoader {
     }
 
     try {
-      console.log('🔄 Loading raw menu data from JSON files...');
+      console.log('🔄 Loading menu data...');
       
       const menuData: MenuData = {
         restaurant: restaurantInfoData as RestaurantInfo,
-        categories: categoriesData as MenuCategory[],
+        categories: menuCategoriesCompleteData as MenuCategory[],
         toppings: toppingsData as Topping[],
         sauces: saucesData as Sauce[],
         coupons: couponsData as Coupon[]
@@ -41,6 +43,7 @@ export class MenuLoader {
       console.log('📋 Raw data loaded:', {
         restaurant: menuData.restaurant?.name,
         categories: menuData.categories?.length,
+        items: menuData.categories?.reduce((total, cat) => total + (cat.items?.length || 0), 0),
         toppings: menuData.toppings?.length,
         sauces: menuData.sauces?.length,
         coupons: menuData.coupons?.length
@@ -55,6 +58,13 @@ export class MenuLoader {
     } catch (error) {
       console.error('❌ Failed to load menu data:', error);
       console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error);
+      
+      // Provide more detailed error information
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Stack trace:', error.stack);
+      }
+      
       throw new Error(`Menu data loading failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -71,7 +81,7 @@ export class MenuLoader {
     if (!this._menuData) return undefined;
 
     for (const category of this._menuData.categories) {
-      const item = category.items.find(item => item.id === itemId);
+      const item = category.items?.find((item: any) => item.id === itemId);
       if (item) return item;
     }
     return undefined;
@@ -103,7 +113,7 @@ export class MenuLoader {
     const lowercaseQuery = query.toLowerCase();
 
     for (const category of this._menuData.categories) {
-      for (const item of category.items) {
+      for (const item of category.items || []) {
         if (
           item.name.toLowerCase().includes(lowercaseQuery) ||
           item.description?.toLowerCase().includes(lowercaseQuery)
@@ -118,7 +128,7 @@ export class MenuLoader {
 
   public getMenuItemsByCategory(categoryId: string): any[] {
     const category = this.getCategoryById(categoryId);
-    return category ? category.items.filter(item => item.available) : [];
+    return category ? (category.items || []).filter(item => item.available) : [];
   }
 
   public refreshMenuData(): void {

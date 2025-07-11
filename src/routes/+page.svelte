@@ -1,60 +1,109 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import Menu from "../components/Menu.svelte";
-  import Info from "../components/Info.svelte";
+  import { goto } from '$app/navigation';
+  import OpenClosedStatus from '$lib/components/ui/OpenClosedStatus.svelte';
+  import { menuData, initializeMenuData } from '$lib/stores/menu-store.svelte.js';
 
-  onMount(() => {});
+  onMount(async () => {
+    // Initialize menu data to get restaurant info for hours
+    try {
+      await initializeMenuData();
+    } catch (error) {
+      console.error('Failed to initialize menu data:', error);
+    }
+  });
 
-  let selected: string | null = null;
-  let inpVal = "";
+  function goToMenu() {
+    goto('/menu');
+  }
+
+  function goToAbout() {
+    goto('/about');
+  }
+
+  function goToHours() {
+    goto('/hours');
+  }
 </script>
+
+<svelte:head>
+  <title>Primo's Pizza - Livonia's Favorite Pizza Since 1985</title>
+  <meta name="description" content="Primo's Pizza - Serving authentic hand-tossed pizzas, broasted chicken, and comfort food in Livonia, Michigan since 1985. Family-owned and operated." />
+</svelte:head>
 
 <div class="main">
   <div class="title-div">
-    <button class="title" onclick={() => (selected = null)}
-      ><h1>Primo's Pizza</h1></button
-    >
-    {#if selected === null}
-      <span class="label">7 Mile & Farmington - Livonia</span>
-      <span class="label"><i>official website</i></span>
-      <span class="label">Call to Order!</span>
-      <span class="label"><h1 id="phone">248 &zwj;476&zwj; 4260</h1></span>
-    {/if}
-    <div class="row-container">
-      <button
-        class="btn"
-        id={selected === "menu" ? "selected" : ""}
-        onclick={() => (selected = "menu")}>Menu</button
-      >
-      <button
-        class="btn"
-        id={selected === "info" ? "selected" : ""}
-        onclick={() => (selected = "info")}>Info</button
-      >
-      <a href="/menu" class="btn">New Menu</a>
+    <div class="header-content">
+      <h1 class="main-title">Primo's Pizza</h1>
+      <span class="location-label">7 Mile & Farmington - Livonia</span>
+      <span class="tagline"><i>official website</i></span>
+      
+      <!-- Open/Closed Status -->
+      {#if menuData()?.restaurant}
+        <div class="status-container">
+          <OpenClosedStatus 
+            restaurantInfo={menuData().restaurant} 
+            size="medium" 
+            showMessage={true} 
+          />
+        </div>
+      {/if}
+      
+      <div class="contact-info">
+        <span class="call-label">Call to Order!</span>
+        <h2 class="phone-number">(248) 476-4260</h2>
+      </div>
     </div>
-    <!-- 
-        {#if selected===null}
-            <span class=label id=ad><h2>Enter your phone number or email below to receive deals and updates!</h2></span>
-            <input class=phone type="text" placeholder="Phone or Email" bind:value={inpVal}>
-        {/if}
-        -->
+    
+    <div class="navigation-container">
+      <button class="nav-btn primary" onclick={goToMenu}>
+        <span>View Menu</span>
+      </button>
+      <button class="nav-btn" onclick={goToAbout}>
+        <span>About Us</span>
+      </button>
+      <button class="nav-btn" onclick={goToHours}>
+        <span>Hours & Location</span>
+      </button>
+    </div>
   </div>
-  <div class="wrapper">
-    {#if selected === "menu"}
-      <Menu />
-    {:else if selected === "info"}
-      <Info />
-    {:else}
-      <div class="filler"></div>
-    {/if}
+  
+  <div class="hero-section">
+    <div class="hero-content">
+      <h2 class="hero-title">Authentic Italian-American Cuisine</h2>
+      <p class="hero-description">
+        Family-owned and operated since 1985, serving the Livonia community with 
+        hand-tossed pizzas, broasted chicken, BBQ ribs, and classic comfort food.
+      </p>
+      <div class="hero-features">
+        <div class="feature">
+          <span class="feature-icon">🍕</span>
+          <span>Hand-Tossed Pizza</span>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">🍗</span>
+          <span>Broasted Chicken</span>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">🍖</span>
+          <span>BBQ Ribs</span>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">🥪</span>
+          <span>Fresh Subs</span>
+        </div>
+      </div>
+      <button class="cta-button" onclick={goToMenu}>
+        Browse Our Full Menu
+      </button>
+    </div>
   </div>
 </div>
 
 <style>
   .main {
     background-color: #253a80;
-    height: 100vh + 8px;
+    min-height: 100vh;
     width: 100vw;
     display: flex;
     margin-left: -8px;
@@ -62,50 +111,8 @@
     justify-content: flex-start;
     align-items: center;
     flex-direction: column;
-    overflow-y: scroll;
-    gap: 1rem;
-  }
-
-  .phone {
-    background-color: azure;
-    border: none;
-    border-radius: 5px;
-    padding: 0.5rem;
-    font-size: 1rem;
-    text-align: center;
-    width: 40%;
-    color: #253a80;
-    font-weight: bold;
-  }
-
-  #ad.label {
-    color: azure;
-    font-size: 1rem;
-    pointer-events: none;
-    text-decoration: none;
-    pointer-events: none;
-    text-decoration: none;
-  }
-
-  .wrapper {
-    height: 100%;
-    display: flex;
-    min-width: 100%;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    /* margin: 8rem auto 0; */
-  }
-
-  #call {
-    color: azure;
-  }
-
-  #phone {
-    font-size: 3rem;
-    text-decoration: none;
-    pointer-events: none;
-    margin: 0;
+    overflow-y: auto;
+    position: relative;
   }
 
   .title-div {
@@ -114,85 +121,219 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    /* position:fixed; */
     background-color: #253a80;
-    /* margin-top: -1.5rem; */
-    /* border-radius: 1rem; */
-    min-height: 10vh;
-    /* padding: 1rem;  */
+    padding: 2rem 1rem;
+    text-align: center;
+    border-bottom: 3px solid #e3b212;
   }
 
-  .filler {
-    min-height: 100vh;
-    width: 100%;
-    background-color: #253a80;
+  .header-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
   }
 
-  .main h1 {
+  .main-title {
     color: #e3b212;
-    font-size: 2rem;
+    font-size: 3rem;
     margin: 0;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
   }
 
-  .row-container {
+  .location-label {
+    color: #e3b212;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  .tagline {
+    color: #e3b212;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    font-style: italic;
+  }
+
+  .status-container {
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+  }
+
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .call-label {
+    color: #e3b212;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .phone-number {
+    color: #e3b212;
+    font-size: 2.5rem;
+    margin: 0;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    letter-spacing: 2px;
+  }
+
+  .navigation-container {
     display: flex;
     flex-direction: row;
-    justify-content: space-evenly;
+    justify-content: center;
     align-items: center;
+    gap: 1rem;
     width: 100%;
-    margin: 0;
-    margin-top: 1rem;
-    gap: 0.5rem;
+    max-width: 600px;
+    flex-wrap: wrap;
   }
 
-  .btn {
+  .nav-btn {
     background-color: #e3b212;
     border: none;
-    border-radius: 5px;
-    padding: 0.5rem;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
     font-size: 1rem;
-    width: 30%;
     color: #253a80;
     font-weight: bold;
     cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
     text-decoration: none;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  .title {
-    background-color: transparent;
-    border: none;
-    border-radius: 5px;
-    padding: 0.5rem;
-    font-size: 1rem;
+  .nav-btn.primary {
+    background-color: #e3b212;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(227, 178, 18, 0.4);
+  }
+
+  .nav-btn:hover {
+    box-shadow: 0 4px 20px rgba(227, 178, 18, 0.6);
+    transform: translateY(-2px);
+  }
+
+  .nav-btn.primary:hover {
+    transform: scale(1.05) translateY(-2px);
+  }
+
+  .hero-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
     width: 100%;
+    max-width: 800px;
+  }
+
+  .hero-content {
+    text-align: center;
+    color: white;
+    max-width: 600px;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
     color: #e3b212;
+    margin: 0 0 1rem 0;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
+
+  .hero-description {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin: 0 0 2rem 0;
+    opacity: 0.9;
+  }
+
+  .hero-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .feature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(227, 178, 18, 0.3);
+  }
+
+  .feature-icon {
+    font-size: 2rem;
+  }
+
+  .feature span:last-child {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .cta-button {
+    background: linear-gradient(45deg, #e3b212, #f5c842);
+    border: none;
+    border-radius: 10px;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    color: #253a80;
     font-weight: bold;
     cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 2rem;
+    box-shadow: 0 4px 15px rgba(227, 178, 18, 0.3);
   }
 
-  .label {
-    color: #e3b212;
-    font-size: 1rem;
-    pointer-events: none;
-    text-decoration: none;
-    pointer-events: none;
-    text-decoration: none;
+  .cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(227, 178, 18, 0.5);
   }
 
-  a {
-    /* color: #e3b212; */
-    text-decoration: none;
-  }
-
-  .btn:hover {
-    box-shadow: 0 0 15px #e3b212;
-  }
-
-  #selected.btn {
-    box-shadow: 0 0 15px #e3b212;
-    border: azure 1px solid;
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .main-title {
+      font-size: 2.5rem;
+    }
+    
+    .phone-number {
+      font-size: 2rem;
+    }
+    
+    .hero-title {
+      font-size: 2rem;
+    }
+    
+    .hero-description {
+      font-size: 1.1rem;
+    }
+    
+    .navigation-container {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .nav-btn {
+      width: 100%;
+      max-width: 300px;
+    }
   }
 </style>

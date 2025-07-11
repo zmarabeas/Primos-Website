@@ -1,144 +1,123 @@
-<script>
-  import { slide } from 'svelte/transition';
-  import { 
-    cartSummary, 
-    isCartOpen, 
-    toggleCart 
-  } from '$lib/stores/cart-store.svelte.js';
-  import { CartIcon } from '$lib/components/icons/index.js';
-  import { ENABLE_CART } from '$lib/config/features.js';
+<script lang="ts">
+  import { page } from '$app/stores';
+  import OpenClosedStatus from '../ui/OpenClosedStatus.svelte';
+  import { menuData } from '$lib/stores/menu-store.svelte.js';
 
-  let { currentPage = '' } = $props();
-  let isMobileMenuOpen = $state(false);
+  interface Props {
+    currentPage?: string;
+  }
 
-  const navItems = [
-    { name: 'Home', href: '/', id: 'home' },
-    { name: 'Menu', href: '/menu', id: 'menu' },
-    { name: 'About', href: '/about', id: 'about' },
-    { name: 'Contact', href: '/contact', id: 'contact' }
+  let { currentPage = 'home' }: Props = $props();
+
+  const navigationItems = [
+    { href: '/', label: 'Home', id: 'home' },
+    { href: '/menu', label: 'Menu', id: 'menu' },
+    { href: '/about', label: 'About', id: 'about' },
+    { href: '/hours', label: 'Hours & Location', id: 'hours' }
   ];
 
-  // Get real-time cart item count from store
-  const cartItemCount = $derived(() => cartSummary().itemCount);
-
-  function handleCartToggle() {
-    toggleCart();
-  }
-
-  function toggleMobileMenu() {
-    isMobileMenuOpen = !isMobileMenuOpen;
-  }
-
-  function closeMobileMenu() {
-    isMobileMenuOpen = false;
-  }
+  $: currentPath = $page.url.pathname;
 </script>
 
-<header class="bg-primos-blue-500 text-white shadow-lg relative z-50 sticky top-0">
-  <div class="container mx-auto px-8">
-    <nav class="flex items-center justify-between h-16">
-      <!-- Logo -->
-      <div class="flex-shrink-0">
-        <a href="/" class="flex items-center justify-center">
-          <div class="flex flex-col items-center justify-center py-1">
-            <!-- Chef Hat -->
-            <img src="/hat.svg" alt="Chef Hat" class="w-6 h-4" />
-            <!-- Brand Text -->
-            <div class="text-center py-0.5 leading-none">
-              <div class="font-display text-[8px] font-bold text-primos-red-600 uppercase tracking-wide">Primo's</div>
-              <div class="font-display text-[8px] font-bold text-primos-red-600 uppercase tracking-wide">Pizza</div>
-            </div>
-            <!-- Mustache -->
-            <img src="/m.svg" alt="Mustache" class="w-6 h-2" />
-          </div>
-        </a>
-      </div>
-
-      <!-- Desktop Navigation -->
-      <div class="hidden md:block">
-        <div class="ml-10 flex items-baseline space-x-8">
-          {#each navItems as item}
-            <a
-              href={item.href}
-              class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 {
-                currentPage === item.id
-                  ? 'bg-primos-blue-700 text-white'
-                  : 'text-primos-blue-100 hover:bg-primos-blue-600 hover:text-white'
-              }"
-              aria-current={currentPage === item.id ? 'page' : undefined}
-            >
-              {item.name}
-            </a>
-          {/each}
-        </div>
-      </div>
-
-      <!-- Cart and Mobile Menu -->
+<header class="bg-primos-blue-900 border-b-2 border-primos-gold-500 sticky top-0 z-50">
+  <div class="container mx-auto px-4">
+    <div class="flex items-center justify-between h-16">
+      <!-- Logo / Brand -->
       <div class="flex items-center space-x-4">
-        <!-- Cart Icon (hidden when ordering disabled) -->
-        {#if ENABLE_CART}
-          <button
-            type="button"
-            onclick={handleCartToggle}
-            class="relative p-2 text-primos-blue-100 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primos-blue-500"
-            aria-label="Shopping cart with {cartItemCount()} items"
-          >
-            <CartIcon class="w-6 h-6" size={24} />
-            {#if cartItemCount() > 0}
-              <span
-                class="absolute -top-1 -right-1 bg-primos-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium animate-pulse"
-              >
-                {cartItemCount()}
-              </span>
-            {/if}
-          </button>
+        <a href="/" class="flex items-center space-x-2 group">
+          <span class="text-2xl font-bold text-primos-gold-500 group-hover:text-primos-gold-400 transition-colors">
+            🍕 Primo's Pizza
+          </span>
+        </a>
+        
+        <!-- Open/Closed Status - Mobile Hidden -->
+        {#if menuData()?.restaurant}
+          <div class="hidden md:block">
+            <OpenClosedStatus 
+              restaurantInfo={menuData().restaurant} 
+              size="small" 
+              showMessage={false} 
+            />
+          </div>
         {/if}
+      </div>
 
-        <!-- Mobile menu button -->
-        <div class="md:hidden">
-          <button
-            type="button"
-            onclick={toggleMobileMenu}
-            class="bg-primos-blue-600 inline-flex items-center justify-center p-2 rounded-md text-primos-blue-100 hover:text-white hover:bg-primos-blue-700 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primos-blue-600"
-            aria-controls="mobile-menu"
-            aria-expanded={isMobileMenuOpen}
+      <!-- Navigation -->
+      <nav class="hidden md:flex items-center space-x-1">
+        {#each navigationItems as item}
+          <a
+            href={item.href}
+            class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 {
+              currentPath === item.href || currentPage === item.id
+                ? 'bg-primos-gold-500 text-primos-blue-900'
+                : 'text-primos-gold-500 hover:bg-primos-blue-800 hover:text-primos-gold-400'
+            }"
           >
-            <span class="sr-only">{isMobileMenuOpen ? 'Close' : 'Open'} main menu</span>
-            {#if isMobileMenuOpen}
-              <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            {:else}
-              <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            {/if}
-          </button>
-        </div>
-      </div>
-    </nav>
+            {item.label}
+          </a>
+        {/each}
+      </nav>
 
-    <!-- Mobile Navigation Menu -->
-    {#if isMobileMenuOpen}
-      <div class="md:hidden" id="mobile-menu" transition:slide>
-        <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          {#each navItems as item}
-            <a
-              href={item.href}
-              onclick={closeMobileMenu}
-              class="block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 {
-                currentPage === item.id
-                  ? 'bg-primos-blue-700 text-white'
-                  : 'text-primos-blue-100 hover:bg-primos-blue-600 hover:text-white'
-              }"
-              aria-current={currentPage === item.id ? 'page' : undefined}
-            >
-              {item.name}
-            </a>
-          {/each}
+      <!-- Mobile Menu Button -->
+      <div class="md:hidden">
+        <button
+          id="mobile-menu-button"
+          class="text-primos-gold-500 hover:text-primos-gold-400 focus:outline-none focus:text-primos-gold-400"
+          onclick="toggleMobileMenu()"
+        >
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="md:hidden hidden">
+      <div class="px-2 pt-2 pb-3 space-y-1 border-t border-primos-gold-500/20">
+        {#each navigationItems as item}
+          <a
+            href={item.href}
+            class="block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 {
+              currentPath === item.href || currentPage === item.id
+                ? 'bg-primos-gold-500 text-primos-blue-900'
+                : 'text-primos-gold-500 hover:bg-primos-blue-800 hover:text-primos-gold-400'
+            }"
+          >
+            {item.label}
+          </a>
+        {/each}
+        
+        <!-- Mobile Open/Closed Status -->
+        {#if menuData()?.restaurant}
+          <div class="px-3 py-2">
+            <OpenClosedStatus 
+              restaurantInfo={menuData().restaurant} 
+              size="small" 
+              showMessage={true} 
+            />
+          </div>
+        {/if}
+        
+        <!-- Contact Info -->
+        <div class="px-3 py-2 border-t border-primos-gold-500/20 mt-2">
+          <a 
+            href="tel:248-476-4260" 
+            class="block text-primos-gold-500 hover:text-primos-gold-400 font-medium"
+          >
+            📞 (248) 476-4260
+          </a>
         </div>
       </div>
-    {/if}
+    </div>
   </div>
-
 </header>
+
+<script>
+  function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    if (menu) {
+      menu.classList.toggle('hidden');
+    }
+  }
+</script>
