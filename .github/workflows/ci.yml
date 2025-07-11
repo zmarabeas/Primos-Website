@@ -1,0 +1,260 @@
+name: 🍕 Primo's Pizza CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  # Job 1: Code Quality & Linting
+  lint-and-typecheck:
+    name: 🔍 Code Quality & Type Checking
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📚 Install Dependencies
+        run: npm ci
+
+      - name: 🧹 Run ESLint
+        run: npm run lint
+
+      - name: 🎨 Check Code Formatting
+        run: npx prettier --check .
+
+      - name: 🔧 TypeScript Type Checking
+        run: npm run typecheck
+
+      - name: 🔍 Svelte Component Checking
+        run: npm run check
+
+  # Job 2: Menu Data Validation
+  menu-validation:
+    name: 🍕 Menu Data Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📚 Install Dependencies
+        run: npm ci
+
+      - name: 🍕 Validate Menu Data Structure
+        run: npm run test:menu-validation
+
+      - name: 💰 Validate Pricing Calculations
+        run: npm run test:pricing
+
+      - name: 📊 Generate Menu Data Report
+        run: npm run test:menu-data-report
+
+  # Job 3: Unit & Component Tests
+  unit-tests:
+    name: 🧪 Unit & Component Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📚 Install Dependencies
+        run: npm ci
+
+      - name: 🧪 Run Unit Tests
+        run: npm run test:coverage
+
+      - name: 📊 Upload Coverage Reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+  # Job 4: Build & Performance Tests
+  build-and-performance:
+    name: 🏗️ Build & Performance Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📚 Install Dependencies
+        run: npm ci
+
+      - name: 🏗️ Build Application
+        run: npm run build
+
+      - name: 📊 Build Analysis
+        run: npm run build:analyze
+
+      - name: 🚀 Test Preview Server
+        run: |
+          npm run preview &
+          sleep 5
+          curl -f http://localhost:4173 || exit 1
+          pkill -f "vite preview"
+
+      - name: 🎯 Performance Tests
+        run: npm run test:performance
+
+      - name: 📦 Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            .svelte-kit/output/
+            build/
+          retention-days: 7
+
+  # Job 5: Integration Tests
+  integration-tests:
+    name: 🔗 Integration Tests
+    runs-on: ubuntu-latest
+    needs: [build-and-performance]
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📚 Install Dependencies
+        run: npm ci
+
+      - name: 📦 Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
+      - name: 🔗 Run Integration Tests
+        run: npm run test:integration
+
+      - name: 🛒 Test Order Flow
+        run: npm run test:order-flow
+
+      - name: 📱 Test Responsive Design
+        run: npm run test:responsive
+
+  # Job 6: Security & Dependencies
+  security-audit:
+    name: 🔒 Security & Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📚 Install Dependencies
+        run: npm ci
+
+      - name: 🔒 Security Audit
+        run: npm audit --audit-level=moderate
+
+      - name: 🕵️ Check for Vulnerabilities
+        run: npx audit-ci --moderate
+
+  # Job 7: Deploy to Preview (PRs only)
+  deploy-preview:
+    name: 🚀 Deploy Preview
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: [lint-and-typecheck, menu-validation, unit-tests, build-and-performance]
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📚 Install Dependencies
+        run: npm ci
+
+      - name: 🏗️ Build for Production
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: 🚀 Deploy to Preview
+        run: echo "🚀 Preview deployment would happen here"
+        # Add your preview deployment logic here (Vercel, Netlify, etc.)
+
+  # Job 8: Deploy to Production (main branch only)
+  deploy-production:
+    name: 🎯 Deploy to Production
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [lint-and-typecheck, menu-validation, unit-tests, build-and-performance, integration-tests, security-audit]
+    environment: production
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📚 Install Dependencies
+        run: npm ci
+
+      - name: 🏗️ Build for Production
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: 🎯 Deploy to Production
+        run: echo "🎯 Production deployment would happen here"
+        # Add your production deployment logic here
+
+      - name: 📊 Post-deployment Health Check
+        run: npm run test:health-check
+
+  # Job 9: Notify on Failure
+  notify-failure:
+    name: 📢 Notify on Failure
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [lint-and-typecheck, menu-validation, unit-tests, build-and-performance, integration-tests, security-audit]
+    steps:
+      - name: 📢 Notify Team
+        run: |
+          echo "🚨 CI Pipeline Failed!"
+          echo "Check the logs for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
